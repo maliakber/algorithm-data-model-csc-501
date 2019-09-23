@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -105,10 +106,13 @@ def rating_by_movies():
     plt.grid()
     plt.show()
 
+
 # visualization function calls
+start_time = time.time()
 # movies_per_year()
 # genre_distribution()
 # genre_by_year()
 # rating_by_year()
 # rating_by_number()
 # rating_by_movies()
+print("It took %s seconds" % (time.time() - start_time))
