@@ -109,7 +109,7 @@ def rating_by_movies():
 
 # visualization function calls
 start_time = time.time()
-# movies_per_year()
+movies_per_year()
 # genre_distribution()
 # genre_by_year()
 # rating_by_year()
