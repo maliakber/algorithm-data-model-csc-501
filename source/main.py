@@ -57,8 +57,8 @@ def split_movies_genre():
 def movies_per_year():
     x, y = zip(*sorted(moviesYearCount.items()))  # unpack a list of pairs into two tuples
     plt.plot(x, y)
-    plt.xticks(np.arange(min(x), max(x) + 5,  5), rotation=80)
-    plt.yticks(np.arange(min(y), max(y) + 50, 50))
+    plt.xticks(np.arange(min(x), max(x) + 10,  10), rotation=60)
+    plt.yticks(np.arange(min(y), max(y) + 100, 100))
     plt.grid()
     plt.ylabel("Number of Movies")
     plt.xlabel("Year")
@@ -71,7 +71,6 @@ def movies_per_genre():
     plt.bar(x, y, width=1.0, facecolor=(0.2, 0.4, 0.6, 0.6), edgecolor='blue')
     plt.xticks(rotation=80)
     plt.yticks(np.arange(min(y), max(y) + 1000, 1000))
-    plt.grid()
     plt.ylabel("Number of Movies")
     plt.xlabel("Genre")
     plt.title("Movie Distribution By Genre")
@@ -83,6 +82,6 @@ def movies_per_genre():
 # split_movies_genre()
 startTime = time.time()
 split_movies_data(movies['title'].values, movies['genres'].values)
-movies_per_year()
+# movies_per_year()
 movies_per_genre()
 print("It took %s seconds to process the data" % (time.time() - startTime))
