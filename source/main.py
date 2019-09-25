@@ -6,24 +6,28 @@ from wordcloud import WordCloud, STOPWORDS  # used to generate world cloud
 
 pd.set_option('mode.chained_assignment', None)
 
+# LOAD DATA
 startTime = time.time()
 movies = pd.read_csv("20M/movies.csv")
 ratings = pd.read_csv("20M/ratings.csv")
-links = pd.read_csv("20M/links.csv")
 tags = pd.read_csv("20M/tags.csv")
-# genomeScores = pd.read_csv("20M/genome-scores.csv")
-# genomeTags = pd.read_csv("20M/genome-tags.csv")
 print("It took %s seconds to load the data" % (time.time() - startTime))
 
+# CLEAN AND FORMAT
+startTime = time.time()
 tags = tags.dropna()
+movies['year'] = movies['title'].str.extract('\\(([0-9]+)\\)$', expand=False)
+movies = movies.dropna()  # removing the null values
+movies['year'] = movies['year'].astype(int)
+moviesGenres = movies[['movieId', 'genres']].copy()
+del movies['genres']
 del ratings['timestamp']
 del tags['timestamp']
 
-movies['year'] = movies['title'].str.extract('\\(([0-9]+)\\)$', expand=False)
-movies = movies.dropna()
-
-movies['year'] = movies['year'].astype(int)  # sorting separately after cleaning data, cause there can be null values
-movies = movies.sort_values(by='year')
+# join operations
+movies_tags = pd.merge(movies[['movieId', 'title']], tags['movieId'], on='movieId')
+movies_ratings_year = pd.merge(movies[['movieId', 'year']], ratings[['movieId', 'rating']], on='movieId')
+movies_ratings_title = pd.merge(movies[['movieId', 'title']], ratings[['movieId', 'rating']], on='movieId')
 
 
 def movies_per_year():
@@ -38,8 +42,7 @@ def movies_per_year():
 
 
 def ratings_per_year():
-    result = pd.merge(movies[['movieId', 'year']], ratings[['movieId', 'rating']], on='movieId')
-    avg_rating = result.groupby('year').rating.mean()
+    avg_rating = movies_ratings_year.groupby('year').rating.mean()
     plt.plot(avg_rating)
     plt.xticks(np.arange(1890, 2015 + 10, 10), rotation=60)
     plt.ylabel("Average Rating")
@@ -51,7 +54,7 @@ def ratings_per_year():
 
 def movies_per_genre():
     moviesGenreCount = dict()
-    for val in movies['genres'].values:
+    for val in moviesGenres['genres'].values:
         for genre in val.strip().split('|'):
             if genre in moviesGenreCount:
                 moviesGenreCount[genre] += 1
@@ -104,34 +107,29 @@ def show_most_tagged():
 
 
 def movie_with_most_tags():
-    result = pd.merge(movies[['movieId', 'title']], tags['movieId'], on='movieId')
-    title_count = result.groupby('title')["movieId"].count().reset_index(name="count")
+    title_count = movies_tags.groupby('title')["movieId"].count().reset_index(name="count")
     title_count = title_count.sort_values('count', ascending=False)[0:15]
     # title_count.plot.bar(x='title', y='count', width=1.0, facecolor=(0.2, 0.4, 0.6, 0.6), edgecolor='blue', rot=85)
 
 
 def movie_with_most_user_rating():
-    result = pd.merge(movies[['movieId', 'title']], ratings[['movieId', 'rating']], on='movieId')
-    rating_count = result.groupby(['title'])['movieId'].count().to_frame('count').reset_index()
-    avg_rating = result.groupby(['title'])['rating'].mean().to_frame('avgRating').reset_index()
+    rating_count = movies_ratings_title.groupby(['title'])['movieId'].count().to_frame('count').reset_index()
+    avg_rating = movies_ratings_title.groupby(['title'])['rating'].mean().to_frame('avgRating').reset_index()
     most_rated_movies = rating_count.sort_values('count', ascending=False)[0:15]
     top_avg_rating = pd.merge(most_rated_movies[['title', 'count']], avg_rating[['title', 'avgRating']], on='title')
     # top_avg_rating.plot.bar(x='title', y='count', ylim=(45000, 68000), width=1.0, facecolor=(0.2, 0.4, 0.6, 0.6), edgecolor='blue', rot=85)
     # top_avg_rating.plot.bar(x='title', y='avgRating', ylim=(min(top_avg_rating.avgRating)-0.2, max(top_avg_rating.avgRating)+0.2), width=1.0, facecolor=(0.2, 0.4, 0.6, 0.6), edgecolor='blue', rot=85)
     top_avg_rating[['count']] = top_avg_rating[['count']].apply(lambda x: (x - x.min() + 1000) / (x.max() - x.min()))
-    top_avg_rating[['avgRating']] = top_avg_rating[['avgRating']].apply(
-        lambda x: (x - x.min() + .05) / (x.max() - x.min()))
+    top_avg_rating[['avgRating']] = top_avg_rating[['avgRating']].apply(lambda x: (x - x.min() + .05) / (x.max() - x.min()))
     # top_avg_rating.plot.bar(x='title', y=['count','avgRating'], rot=85)
 
 
 def rating_summary():
-    result = ratings.groupby('rating')['movieId'].count()
-    # result.plot(grid=True, color='blue')
+    avg_rating = ratings.groupby('rating')['movieId'].count()
+    # avg_rating.plot(grid=True, color='blue')
 
 
 # function calls
-startTime = time.time()
-
 rating_summary()
 movie_with_most_user_rating()
 movie_with_most_tags()
