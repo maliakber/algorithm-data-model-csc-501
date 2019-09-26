@@ -1,16 +1,18 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import time
-from wordcloud import WordCloud, STOPWORDS  # used to generate world cloud
-
+from wordcloud import WordCloud, STOPWORDS #used to generate world cloud
 pd.set_option('mode.chained_assignment', None)
 
-# LOAD DATA
 startTime = time.time()
 movies = pd.read_csv("20M/movies.csv")
 ratings = pd.read_csv("20M/ratings.csv")
+# links = pd.read_csv("20M/links.csv")
 tags = pd.read_csv("20M/tags.csv")
+# genomeScores = pd.read_csv("20M/genome-scores.csv")
+# genomeTags = pd.read_csv("20M/genome-tags.csv")
 print("It took %s seconds to load the data" % (time.time() - startTime))
 
 # CLEAN AND FORMAT
